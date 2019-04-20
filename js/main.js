@@ -1,5 +1,5 @@
-var width = 500;
-var height= 500;
+var width  = 500;
+var height = 500;
 
 d3.csv("./data/movies.csv", function(csv) {
   console.log(csv);
@@ -8,9 +8,11 @@ d3.csv("./data/movies.csv", function(csv) {
     .attr('width', width)
     .attr('height', height);
 
-  var grossExtent = d3.extent(csv, function(row) { return row.gross });
-  var imdbScoreExtent = d3.extent(csv, function(row) { return row.imdb_score });
-  var durationExtent = d3.extent(csv, function(row) { return row.duration });
+  var grossExtent = d3.extent(csv, function(row) { return +row.gross });
+  var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
+  var durationExtent = d3.extent(csv, function(row) { return +row.duration });
+
+  console.log(durationExtent);
 
   var xScale = d3.scaleLinear().domain(durationExtent).range([50, 470]);
   var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([470, 30]);
@@ -40,8 +42,9 @@ d3.csv("./data/movies.csv", function(csv) {
     .on("mouseover", function(d) {
         d3.select(this).attr('fill', "red");
         tooltip.style("opacity", .9)
-          .html("<b>" + d.movie_title + "</b> " + d.title_year + "<br/>"
-                + d.director_name)
+          .html("<b>" + d.movie_title + "</b> " + d.title_year
+                + "<br/>" + d.director_name
+                + "<br/>" + d.duration)
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px");
     })
