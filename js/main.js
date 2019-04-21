@@ -115,7 +115,13 @@ d3.csv("./data/movies.csv", function(csv) {
       .append("text")
       .style("text-anchor", "middle")
       .attr("y", -9)
-      .text(function(d) { return d; });
+      .style("fill", "black")
+      .style("font-weight", "bold")
+      .style("text-transform", "capitalize")
+      .text(function(d) {
+        var fixed = d.replace(/_/g, " ");
+        return fixed;;
+      });
 
   p_g.append("g")
       .attr("class", "brush")
@@ -202,13 +208,15 @@ d3.csv("./data/movies.csv", function(csv) {
     });
 
   s_svg.append("g")
-		.attr("transform", "translate(0,"+ (s_height-30)+ ")")
+		.attr("transform", "translate(0,"+ (s_height-40)+ ")")
 		.call(xAxis)
 		.append("text")
 		.attr("class", "label")
-		.attr("x", s_width-16)
-		.attr("y", -6)
+		.attr("x", s_width/2 + 30)
+		.attr("y", 30)
 		.style("text-anchor", "end")
+    .style("fill", "black")
+    .style("font-weight", "bold")
 		.text("Gross");
 
   s_svg.append("g")
@@ -217,9 +225,12 @@ d3.csv("./data/movies.csv", function(csv) {
 		.append("text")
 		.attr("class", "label")
 		.attr("transform", "rotate(-90)")
-		.attr("y", 6)
+    .attr("x", -s_height/2 + 30)
+		.attr("y", -35)
 		.attr("dy", ".71em")
 		.style("text-anchor", "end")
+    .style("fill", "black")
+    .style("font-weight", "bold")
 		.text("IMDB Score");
 
   // Interaction Logic
