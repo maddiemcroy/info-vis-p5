@@ -35,36 +35,28 @@ var line = d3.line(),
 d3.csv("./data/movies.csv", function(csv) {
   console.log(csv);
 
-  var p_background,
-      p_foreground;
+  // DATA PRE-PROCESSING
 
-  var s_svg = d3.select("#chart").append('svg')
-    .attr('width', s_width)
-    .attr('height', s_height);
-
-  // var timeSvg = d3.select("timeScale").append('svg')
-  //   .attr('width', width)
-  //   .attr('height', 100);
-
-  var p_svg = d3.select("#parallel").append("svg")
-    .attr("width", p_width + p_margin.left + p_margin.right)
-    .attr("height", p_height + p_margin.top + p_margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + p_margin.left + "," + p_margin.top + ")");
-
-
-  // for (row :)
-  var genreSet = new Set();
-  csv.forEach((row) => {
-    row.genreArray = row.genres.split("|")
-    row.genreArray.forEach((genre) => {
-      genreSet.add(genre);
+  // Genre Buttons
+  var genreSet = {};
+  csv.forEach((d,i) => {
+    d.genreArray = d.genres.split("|")
+    d.genreArray.forEach((genre) => {
+      if (genreSet.hasOwnProperty(genre)) {
+        genreSet[genre]++;
+      } else {
+        genreSet[genre] = 1;
+      }
     })
+    d.id = i;
   })
+  var topGenres = Object.keys(genreSet).sort((a,b) => genreSet[b] - genreSet[a])
+  // console.log(genreSet);
+  // console.log(topGenres)
 
   var buttonRow = d3.select("#genre-buttons")
   var gi = 0;
-  genreSet.forEach((genre) => {
+  topGenres.forEach((genre) => {
     if (gi++ < 8) {
       buttonRow.append("label")
         .attr("class", "btn btn-secondary")
@@ -72,37 +64,23 @@ d3.csv("./data/movies.csv", function(csv) {
     }
   })
 
-  // console.log(genreSet)
+  // Constructing Graphs
 
-  var grossExtent = d3.extent(csv, function(row) { return +row.gross });
-  var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
-  var durationExtent = d3.extent(csv, function(row) { return +row.duration });
-  var timeExtent = d3.extent(csv, function(row) { return +row.title_year });
+  // Parallel Coordinates
+  var p_svg = d3.select("#parallel").append("svg")
+    .attr("width", p_width + p_margin.left + p_margin.right)
+    .attr("height", p_height + p_margin.top + p_margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + p_margin.left + "," + p_margin.top + ")");
 
-  // console.log(durationExtent);
-  // console.log(timeExtent);
-
-  var xScale = d3.scaleLinear().domain([0, 220]).range([50, s_width-30]);
-  var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([s_height-30, 30]);
-  var timeScale = d3.scaleLinear().domain(timeExtent).range([0, s_width]);
-
-  var xAxis = d3.axisBottom().scale(xScale);
-  var yAxis = d3.axisLeft().scale(yScale);
-
-  var valid_keys = ["imdb_score", "duration", "cast_total_facebook_likes", "num_voted_users", "facenumber_in_poster"]
+  var valid_keys = ["title_year", "cast_total_facebook_likes", "num_voted_users", "facenumber_in_poster"]
   p_x.domain(p_dimensions = d3.keys(csv[0]).filter(function(d) {
     return d != "name" && valid_keys.includes(d) && (p_y[d] = d3.scaleLinear()
         .domain(d3.extent(csv, function(p) { return +p[d]; }))
         .range([p_height, 0]));
   }));
 
-  // p_background = p_svg.append("g")
-  //     .attr("class", "background")
-  //     .selectAll("path")
-  //     .data(csv)
-  //     .enter().append("path")
-  //     .attr("d", path)
-  //     .classed("pc-entry", true);
+  p_y["title_year"] = d3.scaleLinear().domain([2009, 2017]).range([p_height, 0]);
 
   // Add blue foreground lines for focus.
   p_foreground = p_svg.append("g")
@@ -111,8 +89,18 @@ d3.csv("./data/movies.csv", function(csv) {
       .data(csv)
       .enter().append("path")
       .classed("pc-entry", true)
+      .attr("id", function(d) { return d.id })
       .attr("d", path)
-      .classed("fg-pc-entry", true);
+      .classed("fg-pc-entry", true)
+      .on("mouseover", function(d) {
+        updateHover(d);
+      })
+      .on("mouseout", function(d) {
+        updateHover(null);
+      })
+      .on("click", function(d) {
+        showDetail(d);
+      });
 
   // Add a group element for each dimension.
   const p_g = p_svg.selectAll(".dimension")
@@ -138,9 +126,51 @@ d3.csv("./data/movies.csv", function(csv) {
             .on("end", brush)
             )
         })
-    .selectAll("rect")
+      .selectAll("rect")
       .attr("x", -8)
       .attr("width", 16);
+
+  function path(d) {
+      return line(p_dimensions.map(function(p) { return [p_x(p), p_y[p](d[p])]; }));
+  }
+
+  var activeBrushes = [];
+
+  function brush() {
+    activeBrushes = [];
+    p_svg.selectAll(".brush")
+      .filter(function(d) {
+            p_y[d].brushSelectionValue = d3.brushSelection(this);
+            return d3.brushSelection(this);
+      })
+      .each(function(d) {
+          // Get extents of brush along each active selection axis (the Y axes)
+            activeBrushes.push({
+                dimension: d,
+                extent: d3.brushSelection(this).map(p_y[d].invert)
+            });
+      });
+
+    updateDisplay();
+  }
+
+  // Scatterplot
+
+  var s_svg = d3.select("#chart").append('svg')
+    .attr('width', s_width)
+    .attr('height', s_height);
+
+  var grossExtent = d3.extent(csv, function(row) { return +row.gross });
+  var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
+  var durationExtent = d3.extent(csv, function(row) { return +row.duration });
+  var timeExtent = d3.extent(csv, function(row) { return +row.title_year });
+
+  var xScale = d3.scaleLinear().domain([0, 220]).range([50, s_width-30]);
+  var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([s_height-30, 30]);
+  var timeScale = d3.scaleLinear().domain(timeExtent).range([0, s_width]);
+
+  var xAxis = d3.axisBottom().scale(xScale);
+  var yAxis = d3.axisLeft().scale(yScale);
 
   var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -150,7 +180,7 @@ d3.csv("./data/movies.csv", function(csv) {
     .data(csv)
     .enter()
     .append("circle")
-    .attr("id",function(d,i) {return i;} )
+    .attr("id", function(d) { return d.id } )
     .attr("stroke", "black")
     .attr("cx", function(d) {
       if (d.duration != "") {
@@ -162,36 +192,14 @@ d3.csv("./data/movies.csv", function(csv) {
     .attr("cy", function(d) { return yScale(d.imdb_score); })
     .attr("r", 5)
     .on("mouseover", function(d) {
-        d3.select(this).attr('fill', "red");
-        tooltip.style("opacity", .9)
-          .html("<b>" + d.movie_title + "</b> " + d.title_year
-                + "<br/>" + d.director_name
-                + "<br/>" + d.duration)
-          .style("left", (d3.event.pageX) + "px")
-          .style("top", (d3.event.pageY - 28) + "px");
+      updateHover(d);
     })
     .on("mouseout", function() {
-        d3.select(this).attr('fill', "black");
-        tooltip.style("opacity", 0);
+      updateHover(null);
     })
     .on("click", function(d) {
-      $("#placeholder-text").fadeOut();
-      $("#details-text").fadeOut(400, function() {
-        d3.select("#title").html(d.movie_title);
-        d3.select("#year").html(d.title_year);
-        d3.select("#director").html("<b>Director</b> " + d.director_name);
-        d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
-        d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
-        d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
-        $("#details-text").fadeIn();
-      });
-      $("#details-poster-img").fadeOut(400, function() {
-        d3.select("#details-poster-img").attr("src", getPoster(d.movie_title));
-        $("#details-poster-img").fadeIn();
-      });
+      showDetail(d);
     });
-
-
 
   s_svg.append("g")
 		.attr("transform", "translate(0,"+ (s_height-30)+ ")")
@@ -214,92 +222,106 @@ d3.csv("./data/movies.csv", function(csv) {
 		.style("text-anchor", "end")
 		.text("IMDB Score");
 
-  function path(d) {
-      return line(p_dimensions.map(function(p) { return [p_x(p), p_y[p](d[p])]; }));
+  // Interaction Logic
+
+  function showDetail(d) {
+    $("#placeholder-text").fadeOut();
+    $("#details-text").fadeOut(400, function() {
+      d3.select("#title").html(d.movie_title);
+      d3.select("#year").html(d.title_year);
+      d3.select("#director").html("<b>Director</b> " + d.director_name);
+      d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
+      d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
+      d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
+      $("#details-text").fadeIn();
+    });
+    $("#details-poster-img").fadeOut(400, function() {
+      d3.select("#details-poster-img").attr("src", getPoster(d.movie_title));
+      $("#details-poster-img").fadeIn();
+    });
   }
 
-  var activeBrushes = [];
-
-  function brush() {
-    // var actives = [];
-    activeBrushes = [];
-    p_svg.selectAll(".brush")
-      .filter(function(d) {
-            p_y[d].brushSelectionValue = d3.brushSelection(this);
-            return d3.brushSelection(this);
-      })
-      .each(function(d) {
-          // Get extents of brush along each active selection axis (the Y axes)
-            activeBrushes.push({
-                dimension: d,
-                extent: d3.brushSelection(this).map(p_y[d].invert)
-            });
+  function inFocus(data) {
+    return (genreFilter == "All" || data.genreArray.includes(genreFilter))
+      && activeBrushes.every((active) => {
+          return active.extent[1] <= data[active.dimension] && data[active.dimension] <= active.extent[0];
       });
-
-    // var selected = [];
-    // Update foreground to only display selected values
-    // p_foreground.style("display", function(d) {
-    //     return actives.every(function(active) {
-    //         let result = active.extent[1] <= d[active.dimension] && d[active.dimension] <= active.extent[0];
-    //         if(result)selected.push(d);
-    //         return result;
-    //     }) ? null : "none";
-    // });
-    updateDisplay();
-    // (actives.length>0)?out.text(d3.tsvFormat(selected.slice(0,24))):out.text(d3.tsvFormat(sample_data.slice(0,24)));;
   }
 
-  function updateDisplay() {
+  function updateHover(data) {
+    function correctID(d) {
+      if (data == null) {
+        return false
+      }
+      return d.id == data.id;
+    }
 
-    function inFocus(data) {
-      // console.log(data.genreArray);
-      return (genreFilter == "All" || data.genreArray.includes(genreFilter))
-        && activeBrushes.every((active) => {
-            let result = active.extent[1] <= data[active.dimension] && data[active.dimension] <= active.extent[0];
-            // if(result)selected.push(d);
-            return result;
-        });
+    if (data && inFocus(data)) {
+      tooltip.style("opacity", .9)
+        .html("<b>" + data.movie_title + "</b> " + data.title_year
+              + "<br/>" + data.director_name
+              + "<br/>" + data.duration)
+        .style("left", (d3.event.pageX + 14) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+    } else {
+      tooltip.style("opacity", 0)
     }
 
     d3.selectAll("circle")
+      .classed("hover-circle", false)
+      .filter(inFocus)
+      .filter(correctID)
+      .classed("hover-circle", true)
+      .call((d) => {
+        d._groups[0].forEach((node) => {
+          moveToFront(node);
+        })
+      });
+
+    d3.selectAll(".foreground")
+      .selectAll("path")
+      .classed("hover-pc-entry", false)
+      .filter(inFocus)
+      .filter(correctID)
+      .classed("hover-pc-entry", true)
+      .call((d) => {
+        d._groups[0].forEach((node) => {
+          moveToFront(node);
+        })
+      });
+  }
+
+  function moveToFront(node) {
+    node.parentNode.appendChild(node);
+  };
+
+  function updateDisplay() {
+    d3.selectAll("circle")
       .classed("hidden-circle", true)
       .filter(inFocus)
-      .classed("hidden-circle", false);
+      .classed("hidden-circle", false)
+      .call((d) => {
+        d._groups[0].forEach((node) => {
+          moveToFront(node);
+        })
+      });
 
     d3.selectAll(".foreground")
       .selectAll("path")
       .classed("fg-pc-entry", false)
       .filter(inFocus)
-      .classed("fg-pc-entry", true);
-
-
-    // d3.selectAll("circle")
-    //   .classed("hidden-circle", true)
-    //   .filter((data) => {
-    //     return genreFilter == "All" || data.genreArray.includes(genreFilter)
-    //   })
-    //   .classed("hidden-circle", false);
-    //
-    // d3.selectAll(".foreground")
-    //   .selectAll("path")
-    //   .classed("fg-pc-entry", false)
-    //   .filter((data) => {
-    //     return activeBrushes.every((active) => {
-    //         let result = active.extent[1] <= data[active.dimension] && data[active.dimension] <= active.extent[0];
-    //         // if(result)selected.push(d);
-    //         return result;
-    //     });
-    //   })
-    //   .classed("fg-pc-entry", true);
+      .classed("fg-pc-entry", true)
+      .call((d) => {
+        d._groups[0].forEach((node) => {
+          moveToFront(node);
+        })
+      });
   }
 
   $("#genre-buttons").click((event) => {
-    // console.log(event.target.children[0].value)
-    var radioValue = event.target.children[0].value; //$("input[name='options']:checked").val();
-    genreFilter = radioValue;
+    genreFilter = event.target.children[0].value;
     updateDisplay();
   });
-
 });
 
 

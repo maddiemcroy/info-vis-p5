@@ -79,6 +79,13 @@ circle {
   stroke: none;
 }
 
+.hover-circle {
+  opacity: 1;
+  fill: green;
+  stroke: green;
+  stroke-width: 2px;
+}
+
 .pc-entry {
   opacity: 0.1;
   stroke: grey;
@@ -86,8 +93,16 @@ circle {
 }
 
 .fg-pc-entry {
-  opacity: 0.5;
+  opacity: 0.4;
   stroke: darkred;
+  stroke-width: 2px;
+  fill: none;
+}
+
+.hover-pc-entry {
+  opacity: 1;
+  stroke: green;
+  stroke-width: 6px;
   fill: none;
 }
 
