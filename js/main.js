@@ -100,13 +100,15 @@ d3.csv("./data/movies.csv", function(csv) {
         tooltip.style("opacity", 0);
     })
     .on("click", function(d) {
-      $("#title").fadeOut(400, function() {
+      $("#placeholder-text").fadeOut();
+      $("#details-text").fadeOut(400, function() {
         d3.select("#title").html(d.movie_title);
-        $("#title").fadeIn();
-      });
-      $("#director").fadeOut(400, function() {
-        d3.select("#director").html(d.director_name);
-        $("#director").fadeIn();
+        d3.select("#year").html(d.title_year);
+        d3.select("#director").html("<b>Director</b> " + d.director_name);
+        d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
+        d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
+        d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
+        $("#details-text").fadeIn();
       });
       $("#details-poster-img").fadeOut(400, function() {
         d3.select("#details-poster-img").attr("src", getPoster(d.movie_title));

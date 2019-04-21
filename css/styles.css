@@ -9,6 +9,10 @@ body {
   vertical-align: top;
 }
 
+#wrapper {
+  width: 40%;
+}
+
 #genre-filter {
   margin: auto 0px;
   margin-bottom: 20px;
@@ -18,11 +22,12 @@ body {
   background-color: lightgrey;
   height: 250px;
   padding: 10px;
+  margin-left: 20px;
 }
 
 #details-poster {
   display: inline-block;
-  width: 30%;
+  width: 32%;
   vertical-align: top;
 }
 
@@ -33,7 +38,7 @@ body {
 }
 
 img {
-  max-height: 250px;
+  max-height: 230px;
 }
 
 #title {
