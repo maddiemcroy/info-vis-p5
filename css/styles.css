@@ -9,6 +9,10 @@ body {
   vertical-align: top;
 }
 
+#genre-filter {
+  margin: auto 0px;
+}
+
 #details {
   background-color: #f99c3e;
   height: 250px;
@@ -41,6 +45,31 @@ img {
 #starplot {
   height: 250px;
 }
+
+circle {
+  opacity: 0.5;
+  fill: darkblue;
+  stroke: none;
+}
+
+.hidden-circle {
+  opacity: 0.1;
+  fill: grey;
+  stroke: none;
+}
+
+.pc-entry {
+  opacity: 0.5;
+  stroke: darkblue;
+  fill: none;
+}
+
+.fg-pc-entry {
+  opacity: 0.5;
+  stroke: darkred;
+  fill: none;
+}
+
 
 div.tooltip {
     position: absolute;
