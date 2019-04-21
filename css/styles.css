@@ -1,5 +1,45 @@
 body {
-  font-family: sans-serif;
+  font-family: "Oswald", sans-serif;
+  font-weight: 300;
+}
+
+#wrapper, #chart {
+  width: 49%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+#details {
+  background-color: #f99c3e;
+  height: 250px;
+  padding: 10px;
+}
+
+#details-poster {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+#details-text {
+  display: inline-block;
+  width: 65%;
+  vertical-align: top;
+}
+
+img {
+  max-height: 250px;
+}
+
+#title {
+  font-family: "Oswald", sans-serif;
+  font-weight: bolder;
+  font-size: 2em;
+  text-transform: uppercase;
+}
+
+#starplot {
+  height: 250px;
 }
 
 div.tooltip {

@@ -1,3 +1,16 @@
+var config;
+
+$.ajax({
+  async: false,
+  dataType: "json",
+  url: "https://api.themoviedb.org/3/configuration?api_key=fb3086fa3365a713654919ddf45b9a4b",
+  success: function(result) {
+    config = result;
+  }
+});
+
+console.log(config);
+
 var width  = 500;
 var height = 500;
 
@@ -7,6 +20,8 @@ d3.csv("./data/movies.csv", function(csv) {
   var svg = d3.select("#chart").append('svg')
     .attr('width', width)
     .attr('height', height);
+
+  // for (row :)
 
   var grossExtent = d3.extent(csv, function(row) { return +row.gross });
   var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
@@ -51,6 +66,24 @@ d3.csv("./data/movies.csv", function(csv) {
     .on("mouseout", function() {
         d3.select(this).attr('fill', "black");
         tooltip.style("opacity", 0);
+    })
+    .on("click", function(d) {
+      // console.log(getPoster(d.movie_title));
+      $("#title").fadeOut(400, function() {
+        d3.select("#title").html(d.movie_title);
+        $("#title").fadeIn();
+      });
+      $("#director").fadeOut(400, function() {
+        d3.select("#director").html(d.director_name);
+        $("#director").fadeIn();
+      });
+      $("#details-poster-img").fadeOut(400, function() {
+        d3.select("#details-poster-img").attr("src", getPoster(d.movie_title));
+        $("#details-poster-img").fadeIn();
+      });
+
+
+
     });
 
   svg.append("g")
@@ -76,3 +109,19 @@ d3.csv("./data/movies.csv", function(csv) {
 		.text("IMDB Score");
 
 });
+
+
+function getPoster(title) {
+  var url;
+  $.ajax({
+    async: false,
+    dataType: "json",
+    url: "https://api.themoviedb.org/3/search/movie?api_key=fb3086fa3365a713654919ddf45b9a4b&language=en-US&query=" + title + "&page=1&include_adult=false",
+    success: function(result) {
+      console.log(config.images.base_url);
+      console.log(config.images.poster_sizes[2]);
+      url = config.images.base_url + config.images.poster_sizes[2] + result.results[0].poster_path;
+    }
+  });
+  return url;
+}
