@@ -11,8 +11,8 @@ $.ajax({
 
 console.log(config);
 
-var width  = 500;
-var height = 500;
+var width  = 400;
+var height = 350;
 
 var genreFilter = "All";
 var timeFilter = {
@@ -60,8 +60,8 @@ d3.csv("./data/movies.csv", function(csv) {
   // console.log(durationExtent);
   // console.log(timeExtent);
 
-  var xScale = d3.scaleLinear().domain(durationExtent).range([50, 470]);
-  var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([470, 30]);
+  var xScale = d3.scaleLinear().domain([0, 220]).range([50, width-30]);
+  var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([height-30, 30]);
   var timeScale = d3.scaleLinear().domain(timeExtent).range([0, width]);
 
   var xAxis = d3.axisBottom().scale(xScale);
@@ -100,7 +100,6 @@ d3.csv("./data/movies.csv", function(csv) {
         tooltip.style("opacity", 0);
     })
     .on("click", function(d) {
-      // console.log(getPoster(d.movie_title));
       $("#title").fadeOut(400, function() {
         d3.select("#title").html(d.movie_title);
         $("#title").fadeIn();
@@ -118,7 +117,7 @@ d3.csv("./data/movies.csv", function(csv) {
 
 
   svg.append("g")
-		.attr("transform", "translate(0,"+ (width -30)+ ")")
+		.attr("transform", "translate(0,"+ (height-30)+ ")")
 		.call(xAxis)
 		.append("text")
 		.attr("class", "label")
@@ -176,9 +175,9 @@ function getPoster(title) {
 
 function parallel_coordinates() {
   d3.csv("./data/movies.csv", function(csv) {
-    var margin = {top: 30, right: 10, bottom: 10, left: 10};
-    var width = 960 - margin.left - margin.right;
-    var height = 400 - margin.top - margin.bottom;
+    var margin = {top: 30, right: 10, bottom: 10, left: 0};
+    var width = 800 - margin.left - margin.right;
+    var height = 600 - margin.top - margin.bottom;
 
     var x = d3.scalePoint().range([0, width]).padding(1),
         y = {};

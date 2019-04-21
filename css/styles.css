@@ -3,7 +3,7 @@ body {
   font-weight: 300;
 }
 
-#wrapper, #chart {
+#wrapper, #parallel {
   width: 49%;
   display: inline-block;
   vertical-align: top;
@@ -11,10 +11,11 @@ body {
 
 #genre-filter {
   margin: auto 0px;
+  margin-bottom: 20px;
 }
 
 #details {
-  background-color: #f99c3e;
+  background-color: lightgrey;
   height: 250px;
   padding: 10px;
 }
@@ -59,8 +60,8 @@ circle {
 }
 
 .pc-entry {
-  opacity: 0.5;
-  stroke: darkblue;
+  opacity: 0.1;
+  stroke: grey;
   fill: none;
 }
 
