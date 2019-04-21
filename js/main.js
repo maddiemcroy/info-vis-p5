@@ -11,7 +11,7 @@ $.ajax({
 
 console.log(config);
 
-var s_width  = 400;
+var s_width  = 600;
 var s_height = 350;
 
 var p_margin = {top: 30, right: 10, bottom: 10, left: 0};
@@ -73,7 +73,7 @@ d3.csv("./data/movies.csv", function(csv) {
     .append("g")
     .attr("transform", "translate(" + p_margin.left + "," + p_margin.top + ")");
 
-  var valid_keys = ["title_year", "cast_total_facebook_likes", "num_voted_users", "facenumber_in_poster"]
+  var valid_keys = ["title_year", "cast_total_facebook_likes", "duration", "facenumber_in_poster"]
   p_x.domain(p_dimensions = d3.keys(csv[0]).filter(function(d) {
     return d != "name" && valid_keys.includes(d) && (p_y[d] = d3.scaleLinear()
         .domain(d3.extent(csv, function(p) { return +p[d]; }))
@@ -169,11 +169,11 @@ d3.csv("./data/movies.csv", function(csv) {
   var grossExtent = d3.extent(csv, function(row) { return +row.gross });
   var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
   var durationExtent = d3.extent(csv, function(row) { return +row.duration });
+  var votedUsersExtent = d3.extent(csv, function(row) { return +row.num_voted_users });
   var timeExtent = d3.extent(csv, function(row) { return +row.title_year });
 
-  var xScale = d3.scaleLinear().domain([0, 220]).range([50, s_width-30]);
+  var xScale = d3.scaleLog().domain(votedUsersExtent).range([50, s_width-30]);
   var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([s_height-30, 30]);
-  var timeScale = d3.scaleLinear().domain(timeExtent).range([0, s_width]);
 
   var xAxis = d3.axisBottom().scale(xScale);
   var yAxis = d3.axisLeft().scale(yScale);
@@ -189,8 +189,8 @@ d3.csv("./data/movies.csv", function(csv) {
     .attr("id", function(d) { return d.id } )
     .attr("stroke", "black")
     .attr("cx", function(d) {
-      if (d.duration != "") {
-        return xScale(d.duration);
+      if (d.num_voted_users != "") {
+        return xScale(d.num_voted_users);
       } else {
         return -20;
       }
@@ -217,7 +217,7 @@ d3.csv("./data/movies.csv", function(csv) {
 		.style("text-anchor", "end")
     .style("fill", "black")
     .style("font-weight", "bold")
-		.text("Gross");
+		.text("Duration");
 
   s_svg.append("g")
 		.attr("transform", "translate(50, 0)")
@@ -244,6 +244,10 @@ d3.csv("./data/movies.csv", function(csv) {
       d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
       d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
       d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
+      d3.select(".progress-bar").style("width", d.imdb_score*10 + "%");
+      d3.select(".progress-bar").attr("aria-valuenow", d.imdb_score*10);
+      d3.select(".progress-bar").html(d.imdb_score + "/10");
+      $(".progress").fadeIn();
       $("#details-text").fadeIn();
     });
     $("#details-poster-img").fadeOut(400, function() {

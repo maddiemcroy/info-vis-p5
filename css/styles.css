@@ -12,20 +12,21 @@ body {
   font-size: 0.7em;
 }
 
+#placeholder-text {
+  text-align: center;
+  margin-top: -80px;
+}
+
 #instructions {
   text-align: center;
-  margin: 0px 32%;
+  margin: 0px 30%;
   margin-bottom: 10px
 }
 
 #wrapper, #parallel {
-  width: 49%;
+  width: 700px;
   display: inline-block;
   vertical-align: top;
-}
-
-#wrapper {
-  width: 40%;
 }
 
 #genre-filter {
@@ -38,6 +39,7 @@ body {
   height: 250px;
   padding: 10px;
   margin-left: 20px;
+  width: 600px;
 }
 
 #details-poster {
@@ -59,12 +61,21 @@ img {
 #title {
   font-family: "Oswald", sans-serif;
   font-weight: bolder;
-  font-size: 2em;
+  font-size: 1.4em;
   text-transform: uppercase;
 }
 
 #starplot {
   height: 250px;
+}
+
+.progress {
+  margin-top: 10px;
+  display: none;
+}
+
+.progress-bar {
+  background-color: gold !important;
 }
 
 circle {

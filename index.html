@@ -14,7 +14,7 @@
   <body>
     <div id="page-title"><h1>Movies</h1></div>
     <div id="instructions">Explore trends and details in data about popular films.
-      <div class="smaller">Filter by genres using the button menu. Click and drag on the parallel coordinates axes to filter. Click on a parallel coordinates line or scatterplot point to view details.</div>
+      <div class="smaller">Filter by genres using the button menu. Click and drag on the parallel coordinates axes to filter. Click outside the brush to reset. Click on a parallel coordinates line or scatterplot point to view details.</div>
       </div>
     <div id="genre-filter" class="text-center">
       <div id="genre-buttons" class="btn-group btn-group-toggle" data-toggle="buttons">
@@ -30,13 +30,16 @@
           <img id="details-poster-img"></img>
         </div>
         <div id="details-text">
-          <div id="placeholder-text"><h3><br/><br/>Select a movie</h3></div>
           <span id="title"></span> <span id="year"></span><br/>
           <span id="director"></span><br/><br/>
           <span id="actor1"></span><br/>
           <span id="actor2"></span><br/>
           <span id="actor3"></span><br/>
+          <div class="progress" style="display: none">
+            <span style="padding: 0px 3px;"><b>Score: </b></span><div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
         </div>
+        <div id="placeholder-text"><h3>Select a movie</h3></div>
       </div>
       <div id="chart"></div>
     </div>
