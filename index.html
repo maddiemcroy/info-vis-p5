@@ -12,7 +12,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </head>
   <body>
-    <h1>CS 4460</h1>
+    <div id="page-title"><h1>Movies</h1></div>
+    <div id="instructions">Explore trends and details in data about popular films.
+      <div class="smaller">Filter by genres using the button menu. Click and drag on the parallel coordinates axes to filter. Click on a parallel coordinates line or scatterplot point to view details.</div>
+      </div>
     <div id="genre-filter" class="text-center">
       <div id="genre-buttons" class="btn-group btn-group-toggle" data-toggle="buttons">
         <label class="btn btn-secondary active">
@@ -37,6 +40,8 @@
       </div>
       <div id="chart"></div>
     </div>
+
+    <div class="footer"></div>
 
   </body>
   <script
