@@ -100,6 +100,7 @@ d3.csv("./data/movies.csv", function(csv) {
       })
       .on("click", function(d) {
         showDetail(d);
+        generateBudgetChart(d, budgetExtent);
       });
 
   // Add a group element for each dimension.
@@ -167,6 +168,7 @@ d3.csv("./data/movies.csv", function(csv) {
     .attr('height', s_height);
 
   var grossExtent = d3.extent(csv, function(row) { return +row.gross });
+  var budgetExtent = d3.extent(csv, function(row) { return +row.budget });
   var imdbScoreExtent = d3.extent(csv, function(row) { return +row.imdb_score });
   var durationExtent = d3.extent(csv, function(row) { return +row.duration });
   var votedUsersExtent = d3.extent(csv, function(row) { return +row.num_voted_users });
@@ -205,6 +207,7 @@ d3.csv("./data/movies.csv", function(csv) {
     })
     .on("click", function(d) {
       showDetail(d);
+      generateBudgetChart(d, budgetExtent);
     });
 
   s_svg.append("g")
@@ -217,7 +220,7 @@ d3.csv("./data/movies.csv", function(csv) {
 		.style("text-anchor", "end")
     .style("fill", "black")
     .style("font-weight", "bold")
-		.text("Duration");
+		.text("Number of Votes");
 
   s_svg.append("g")
 		.attr("transform", "translate(50, 0)")
@@ -240,13 +243,17 @@ d3.csv("./data/movies.csv", function(csv) {
     $("#details-text").fadeOut(400, function() {
       d3.select("#title").html(d.movie_title);
       d3.select("#year").html(d.title_year);
-      d3.select("#director").html("<b>Director</b> " + d.director_name);
+      if (d.director_name) {
+        d3.select("#director").html("<b>Director</b> " + d.director_name);
+      } else {
+        d3.select("#director").html("");
+      }
       d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
       d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
       d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
       d3.select(".progress-bar").style("width", d.imdb_score*10 + "%");
       d3.select(".progress-bar").attr("aria-valuenow", d.imdb_score*10);
-      d3.select(".progress-bar").html(d.imdb_score + "/10");
+      d3.select(".progress-bar").html("<i class='far fa-star'></i>" + d.imdb_score + "/10");
       $(".progress").fadeIn();
       $("#details-text").fadeIn();
     });
@@ -274,8 +281,7 @@ d3.csv("./data/movies.csv", function(csv) {
     if (data && inFocus(data)) {
       tooltip.style("opacity", .9)
         .html("<b>" + data.movie_title + "</b> " + data.title_year
-              + "<br/>" + data.director_name
-              + "<br/>" + data.duration)
+              + "<br/>" + data.director_name)
         .style("left", (d3.event.pageX + 14) + "px")
         .style("top", (d3.event.pageY - 28) + "px");
     } else {
@@ -339,6 +345,56 @@ d3.csv("./data/movies.csv", function(csv) {
   });
 });
 
+function generateBudgetChart(movie, extent) {
+  $("#details-budget").empty();
+  var height = 100,
+      width = 100,
+      xScale = d3.scaleBand().domain(["Budget", "Gross"]).range([0, width]).padding(0.1),
+      yScale = d3.scaleLinear().domain([0, d3.max([movie.budget, movie.gross])]).range([height, 0]);
+
+  var data = [
+    {
+      "name" : "Budget",
+      "value" : movie.budget,
+      "color" : "red"
+    },
+    {
+      "name" : "Gross",
+      "value" : movie.gross,
+      "color" : "green"
+    }
+  ];
+
+  var svg = d3.select("#details-budget").append('svg')
+    .attr("width", width)
+    .attr("height", height);
+
+  svg.selectAll('.bar')
+    .data(data)
+    .enter().append("rect")
+    .attr("class", "bar")
+    .attr("x", function(d) { return xScale(d.name); })
+    .attr("width", xScale.bandwidth())
+    .attr("y", function(d) { return yScale(d.value) })
+    .attr("height", function(d) { return height - yScale(d.value); })
+    .style("fill", function(d) { return d.color; });
+
+  svg.append("text")
+    .attr("class", "budget-label")
+    .attr("x", xScale(data[0].name))
+    .attr("y", height - 10)
+    .style("fill", "black")
+    .style("font-weight", "bold")
+    .text(data[0].value);
+
+  svg.append("text")
+    .attr("class", "budget-label")
+    .attr("x", xScale(data[1].name))
+    .attr("y", height - 10)
+    .style("fill", "black")
+    .style("font-weight", "bold")
+    .text(data[1].value);
+}
 
 
 function getPoster(title) {

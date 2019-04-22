@@ -72,10 +72,16 @@ img {
 .progress {
   margin-top: 10px;
   display: none;
+  width:150px;
 }
 
-.progress-bar {
-  background-color: gold !important;
+#details-cast, #details-budget {
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+#details-budget {
+  margin-left: 30px;
 }
 
 circle {
@@ -129,4 +135,8 @@ div.tooltip {
     border-radius: 8px;
     pointer-events: none;
     z-index: 10;
+}
+
+.budget-label {
+  font-size: 0.5em;
 }
