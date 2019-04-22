@@ -100,7 +100,6 @@ d3.csv("./data/movies.csv", function(csv) {
       })
       .on("click", function(d) {
         showDetail(d);
-        generateBudgetChart(d, budgetExtent);
       });
 
   // Add a group element for each dimension.
@@ -112,7 +111,13 @@ d3.csv("./data/movies.csv", function(csv) {
 
   p_g.append("g")
       .attr("class", "axis")
-      .each(function(d) { d3.select(this).call(axisLeft.scale(p_y[d])); })
+      .each(function(d) {
+        if (d == "title_year") {
+          d3.select(this).call(axisLeft.scale(p_y[d]).tickFormat(d3.format("")));
+        } else {
+          d3.select(this).call(axisLeft.scale(p_y[d]));
+        }
+      })
       .append("text")
       .style("text-anchor", "middle")
       .attr("y", -9)
@@ -177,7 +182,10 @@ d3.csv("./data/movies.csv", function(csv) {
   var xScale = d3.scaleLog().domain(votedUsersExtent).range([50, s_width-30]);
   var yScale = d3.scaleLinear().domain(imdbScoreExtent).range([s_height-30, 30]);
 
-  var xAxis = d3.axisBottom().scale(xScale);
+  var xAxis = d3.axisBottom().scale(xScale)
+    .ticks(4)
+    .tickFormat(d3.format(".2s"));
+    // .ticks(".2s")
   var yAxis = d3.axisLeft().scale(yScale);
 
   var tooltip = d3.select("body").append("div")
@@ -207,7 +215,6 @@ d3.csv("./data/movies.csv", function(csv) {
     })
     .on("click", function(d) {
       showDetail(d);
-      generateBudgetChart(d, budgetExtent);
     });
 
   s_svg.append("g")
@@ -238,6 +245,16 @@ d3.csv("./data/movies.csv", function(csv) {
 
   // Interaction Logic
 
+  function getBarColor(score) {
+    if (score <= 4) {
+      return "bg-danger";
+    } else if (score <= 8) {
+      return "bg-warning"
+    } else {
+      return "bg-success"
+    }
+  }
+
   function showDetail(d) {
     $("#placeholder-text").fadeOut();
     $("#details-text").fadeOut(400, function() {
@@ -251,9 +268,13 @@ d3.csv("./data/movies.csv", function(csv) {
       d3.select("#actor1").html("<b>Cast</b><br/><i class='fas fa-user'></i> " + d.actor_1_name);
       d3.select("#actor2").html("<i class='fas fa-user'></i> " + d.actor_2_name);
       d3.select("#actor3").html("<i class='fas fa-user'></i> " + d.actor_3_name);
-      d3.select(".progress-bar").style("width", d.imdb_score*10 + "%");
-      d3.select(".progress-bar").attr("aria-valuenow", d.imdb_score*10);
-      d3.select(".progress-bar").html("<i class='far fa-star'></i>" + d.imdb_score + "/10");
+      // d3.select("#score").html"
+      d3.select(".progress-bar")
+        .style("width", d.imdb_score*10 + "%")
+        .attr("aria-valuenow", d.imdb_score*10)
+        .attr("class", "progress-bar " + getBarColor(d.imdb_score))
+        .html("<span>&nbsp;<i class='far fa-star'></i>&nbsp;" + d.imdb_score + "/10</span>");
+      generateBudgetChart(d, budgetExtent);
       $(".progress").fadeIn();
       $("#details-text").fadeIn();
     });
@@ -345,12 +366,20 @@ d3.csv("./data/movies.csv", function(csv) {
   });
 });
 
+var b_height = 100,
+    b_width = 100;
+
+var f = d3.format(".2s")
+
 function generateBudgetChart(movie, extent) {
   $("#details-budget").empty();
-  var height = 100,
-      width = 100,
-      xScale = d3.scaleBand().domain(["Budget", "Gross"]).range([0, width]).padding(0.1),
-      yScale = d3.scaleLinear().domain([0, d3.max([movie.budget, movie.gross])]).range([height, 0]);
+
+  var b_xScale = d3.scaleBand().domain(["Budget", "Gross"]).range([0, b_width]).padding(0.1),
+      b_yScale = d3.scaleLinear().domain([0, d3.max([movie.budget, movie.gross])]).range([b_height, 0])
+
+  var budget_svg = d3.select("#details-budget").append('svg')
+    .attr("width", b_width)
+    .attr("height", b_height);
 
   var data = [
     {
@@ -365,35 +394,31 @@ function generateBudgetChart(movie, extent) {
     }
   ];
 
-  var svg = d3.select("#details-budget").append('svg')
-    .attr("width", width)
-    .attr("height", height);
-
-  svg.selectAll('.bar')
+  budget_svg.selectAll('.bar')
     .data(data)
     .enter().append("rect")
     .attr("class", "bar")
-    .attr("x", function(d) { return xScale(d.name); })
-    .attr("width", xScale.bandwidth())
-    .attr("y", function(d) { return yScale(d.value) })
-    .attr("height", function(d) { return height - yScale(d.value); })
+    .attr("x", function(d) { return b_xScale(d.name); })
+    .attr("width", b_xScale.bandwidth())
+    .attr("y", function(d) { return b_yScale(d.value) })
+    .attr("height", function(d) { return b_height - b_yScale(d.value); })
     .style("fill", function(d) { return d.color; });
 
-  svg.append("text")
+  budget_svg.append("text")
     .attr("class", "budget-label")
-    .attr("x", xScale(data[0].name))
-    .attr("y", height - 10)
-    .style("fill", "black")
-    .style("font-weight", "bold")
-    .text(data[0].value);
+    .attr("text-anchor", "middle")
+    .attr("x", b_xScale(data[0].name)+b_xScale.bandwidth()/2)
+    .attr("y", b_height - 10)
+    .style("text-align", "center")
+    .text("$" + f(data[0].value));
 
-  svg.append("text")
+  budget_svg.append("text")
     .attr("class", "budget-label")
-    .attr("x", xScale(data[1].name))
-    .attr("y", height - 10)
-    .style("fill", "black")
-    .style("font-weight", "bold")
-    .text(data[1].value);
+    .attr("text-anchor", "middle")
+    .attr("x", b_xScale(data[1].name)+b_xScale.bandwidth()/2)
+    .attr("y", b_height - 10)
+    .style("text-align", "center")
+    .text("$" + f(data[1].value));
 }
 
 
