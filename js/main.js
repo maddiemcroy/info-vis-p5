@@ -32,6 +32,8 @@ var timeFilter = {
 var line = d3.line(),
     axisLeft = d3.axisLeft();
 
+var selectedData = null;
+
 d3.csv("./data/movies.csv", function(csv) {
   console.log(csv);
 
@@ -256,6 +258,8 @@ d3.csv("./data/movies.csv", function(csv) {
   }
 
   function showDetail(d) {
+    selectedData = d;
+
     $("#placeholder-text").fadeOut();
     $("#details-text").fadeOut(400, function() {
       d3.select("#title").html(d.movie_title);
@@ -282,21 +286,21 @@ d3.csv("./data/movies.csv", function(csv) {
       d3.select("#details-poster-img").attr("src", getPoster(d.movie_title));
       $("#details-poster-img").fadeIn();
     });
+
+    updateHover(d);
   }
 
   function inFocus(data) {
-    return (genreFilter == "All" || data.genreArray.includes(genreFilter))
+    return ((selectedData != null && data.id == selectedData.id)
+      || (genreFilter == "All" || data.genreArray.includes(genreFilter))
       && activeBrushes.every((active) => {
           return active.extent[1] <= data[active.dimension] && data[active.dimension] <= active.extent[0];
-      });
+      }));
   }
 
   function updateHover(data) {
     function correctID(d) {
-      if (data == null) {
-        return false
-      }
-      return d.id == data.id;
+      return (data != null && d.id == data.id) || (selectedData != null && d.id == selectedData.id);
     }
 
     if (data && inFocus(data)) {
