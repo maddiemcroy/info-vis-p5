@@ -111,7 +111,7 @@ circle {
 
 .fg-pc-entry {
   opacity: 0.4;
-  stroke: darkred;
+  stroke: darkblue;
   stroke-width: 2px;
   fill: none;
 }
@@ -145,4 +145,10 @@ div.tooltip {
   font-size: 0.7em;
   /* fill: white; */
   font-weight: bold;
+}
+
+.btn.active {
+  color: #fff;
+  background-color: darkgreen !important;
+  border-color: darkgreen !important;
 }
